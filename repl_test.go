@@ -41,7 +41,7 @@ func TestCleanInput(t *testing.T) {
 			expectedWord := c.expected[i]
 
 			if word != expectedWord {
-				t.Errorf("actual: %v and expected: %v are not equal!", word, expectedWord)
+				t.Errorf("cleanInput(%v) == %v . Expected: %v", c.input, word, expectedWord)
 				t.Fail()
 			}
 
