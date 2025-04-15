@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/arishimam/pokedexcli/internal/pokeapi"
 	"os"
 	"strings"
 )
@@ -10,7 +11,13 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
+}
+
+type config struct {
+	pokeapiClient    pokeapi.Client
+	prevLocationsURL *string
+	nextLocationsURL *string
 }
 
 var supportedCommands map[string]cliCommand
@@ -27,10 +34,20 @@ func init() {
 			description: "Displays a help message",
 			callback:    commandHelp,
 		},
+		"map": {
+			name:        "map",
+			description: "Displays next 20 locations, and so on.",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Displays previous 20 locations, and so on.",
+			callback:    commandMapB,
+		},
 	}
 }
 
-func startRepl() {
+func startRepl(cfg *config) {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -47,8 +64,12 @@ func startRepl() {
 			command = output[0]
 		}
 
-		if c, ok := supportedCommands[command]; ok {
-			c.callback()
+		c, ok := supportedCommands[command]
+		if ok {
+			err := c.callback(cfg)
+			if err != nil {
+				fmt.Println(err)
+			}
 
 		} else {
 			fmt.Println("Unknown command")
@@ -60,28 +81,5 @@ func startRepl() {
 func cleanInput(text string) []string {
 	lowerCase := strings.ToLower(text)
 	output := strings.Fields(lowerCase)
-
 	return output
-
-}
-
-func commandExit() error {
-	fmt.Println("\nClosing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-
-}
-
-func commandHelp() error {
-	fmt.Println("\nWelcome to the Pokedex!")
-	fmt.Println("Usage:")
-	fmt.Println()
-
-	for k, v := range supportedCommands {
-		fmt.Println(k + ":" + v.description)
-	}
-
-	fmt.Println()
-
-	return nil
 }
