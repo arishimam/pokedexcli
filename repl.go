@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/arishimam/pokedexcli/internal/cache"
 	"github.com/arishimam/pokedexcli/internal/pokeapi"
 	"os"
 	"strings"
@@ -18,6 +19,7 @@ type config struct {
 	pokeapiClient    pokeapi.Client
 	prevLocationsURL *string
 	nextLocationsURL *string
+	cache            *cache.Cache
 }
 
 var supportedCommands map[string]cliCommand

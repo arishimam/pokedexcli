@@ -17,28 +17,38 @@ type Cache struct {
 
 func NewCache(interval time.Duration) *Cache {
 	// call cache.reapLoop()
-	newCache := &Cache{cache: map[string]cacheEntry{}}
-	newCache.reapLoop(interval)
-	return newCache
+	c := &Cache{cache: map[string]cacheEntry{}}
+
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			c.reapLoop(interval)
+		}
+
+	}()
+
+	return c
 }
 
 func (c *Cache) Add(key string, val []byte) {
 	c.mx.Lock()
+	defer c.mx.Unlock()
 	c.cache[key] = cacheEntry{
 		createdAt: time.Now(),
 		val:       val,
 	}
-	c.mx.Unlock()
 }
 
 func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mx.Lock()
-	if entry, ok := c.cache[key]; ok {
-		c.mx.Unlock()
+	defer c.mx.Unlock()
+
+	if entry, exists := c.cache[key]; exists {
 		return entry.val, true
 	}
 
-	c.mx.Unlock()
 	return []byte{}, false
 }
 
