@@ -2,7 +2,6 @@ package pokeapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -19,11 +18,8 @@ func (c *Client) ListLocations(C *cache.Cache, pageURL *string) (LocationAreas, 
 		url = *pageURL
 	}
 
-	fmt.Println("Getting: ", url)
-	entry, exists := C.Get(url)
+	entry, exists := c.cache.Get(url)
 	if exists {
-		fmt.Println("USED THE CACHE")
-		fmt.Println()
 
 		err := json.Unmarshal(entry, &pokeAreas)
 		if err != nil {
@@ -33,8 +29,6 @@ func (c *Client) ListLocations(C *cache.Cache, pageURL *string) (LocationAreas, 
 		return pokeAreas, nil
 	}
 
-	fmt.Println("DIDNT USE THE CACHE")
-	fmt.Println()
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -55,13 +49,13 @@ func (c *Client) ListLocations(C *cache.Cache, pageURL *string) (LocationAreas, 
 		return LocationAreas{}, err
 	}
 
-	C.Add(url, body)
-	fmt.Println("Adding: ", url)
 	err = json.Unmarshal(body, &pokeAreas)
 	if err != nil {
 		log.Fatal(err)
 		return LocationAreas{}, err
 	}
+
+	c.cache.Add(url, body)
 
 	return pokeAreas, nil
 }
