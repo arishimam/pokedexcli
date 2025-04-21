@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/arishimam/pokedexcli/internal/cache"
 	"github.com/arishimam/pokedexcli/internal/pokeapi"
 	"os"
 	"strings"
@@ -19,7 +18,6 @@ type config struct {
 	pokeapiClient    pokeapi.Client
 	prevLocationsURL *string
 	nextLocationsURL *string
-	cache            *cache.Cache
 }
 
 var supportedCommands map[string]cliCommand
@@ -61,20 +59,22 @@ func startRepl(cfg *config) {
 		input := scanner.Text()
 		output := cleanInput(input)
 
-		command := ""
-		if len(output) > 0 {
-			command = output[0]
+		if len(output) == 0 {
+			continue
 		}
 
-		c, ok := supportedCommands[command]
+		command := output[0]
+
+		com, ok := supportedCommands[command]
 		if ok {
-			err := c.callback(cfg)
+			err := com.callback(cfg)
 			if err != nil {
 				fmt.Println(err)
 			}
-
+			continue
 		} else {
 			fmt.Println("Unknown command")
+			continue
 		}
 
 	}

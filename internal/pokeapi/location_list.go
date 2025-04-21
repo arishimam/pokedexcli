@@ -2,25 +2,22 @@ package pokeapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
-
-	"github.com/arishimam/pokedexcli/internal/cache"
 )
 
-func (c *Client) ListLocations(C *cache.Cache, pageURL *string) (LocationAreas, error) {
-
-	pokeAreas := LocationAreas{}
+func (c *Client) ListLocations(pageURL *string) (LocationAreas, error) {
 
 	url := baseURL + "/location-area"
 	if pageURL != nil {
 		url = *pageURL
 	}
 
-	entry, exists := c.cache.Get(url)
-	if exists {
-
+	if entry, exists := c.cache.Get(url); exists {
+		fmt.Println("USED CACHE")
+		pokeAreas := LocationAreas{}
 		err := json.Unmarshal(entry, &pokeAreas)
 		if err != nil {
 			log.Fatal(err)
@@ -42,13 +39,13 @@ func (c *Client) ListLocations(C *cache.Cache, pageURL *string) (LocationAreas, 
 	}
 	defer res.Body.Close()
 
-	// unmarshall data into struct
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Fatal(err)
 		return LocationAreas{}, err
 	}
 
+	pokeAreas := LocationAreas{}
 	err = json.Unmarshal(body, &pokeAreas)
 	if err != nil {
 		log.Fatal(err)
@@ -56,6 +53,7 @@ func (c *Client) ListLocations(C *cache.Cache, pageURL *string) (LocationAreas, 
 	}
 
 	c.cache.Add(url, body)
+	fmt.Println("DIDNT USED CACHE")
 
 	return pokeAreas, nil
 }

@@ -18,7 +18,7 @@ type Cache struct {
 func NewCache(interval time.Duration) Cache {
 	// call cache.reapLoop()
 	c := Cache{
-		cache: map[string]cacheEntry{},
+		cache: make(map[string]cacheEntry),
 		mx:    &sync.Mutex{},
 	}
 
@@ -31,7 +31,7 @@ func (c *Cache) Add(key string, val []byte) {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 	c.cache[key] = cacheEntry{
-		createdAt: time.Now(),
+		createdAt: time.Now().UTC(),
 		val:       val,
 	}
 }
@@ -40,11 +40,8 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 
-	if entry, exists := c.cache[key]; exists {
-		return entry.val, true
-	}
-
-	return []byte{}, false
+	entry, exists := c.cache[key]
+	return entry.val, exists
 }
 
 func (c *Cache) reapLoop(interval time.Duration) {
@@ -52,15 +49,16 @@ func (c *Cache) reapLoop(interval time.Duration) {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		c.mx.Lock()
-		defer c.mx.Unlock()
-
-		for k, v := range c.cache {
-			if time.Since(v.createdAt) > interval {
-				delete(c.cache, k)
-			}
-		}
-
+		c.reap(time.Now().UTC(), interval)
 	}
+}
+func (c *Cache) reap(now time.Time, last time.Duration) {
+	c.mx.Lock()
+	defer c.mx.Unlock()
 
+	for k, v := range c.cache {
+		if v.createdAt.Before(now.Add(-last)) {
+			delete(c.cache, k)
+		}
+	}
 }
