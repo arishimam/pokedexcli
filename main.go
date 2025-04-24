@@ -12,6 +12,7 @@ func main() {
 		pokeapiClient:    pokeClient,
 		prevLocationsURL: nil,
 		nextLocationsURL: nil,
+		caughtPokemon:    map[string]pokeapi.Pokemon{},
 	}
 
 	startRepl(cfg)

@@ -18,6 +18,7 @@ type config struct {
 	pokeapiClient    pokeapi.Client
 	prevLocationsURL *string
 	nextLocationsURL *string
+	caughtPokemon    map[string]pokeapi.Pokemon
 }
 
 var supportedCommands map[string]cliCommand
@@ -54,6 +55,11 @@ func init() {
 			description: "Gives the user a chance to catch a Pokemon",
 			callback:    commandCatch,
 		},
+		"inspect": {
+			name:        "inspect",
+			description: "Allows user to view stats of a Pokemon they have caught",
+			callback:    commandInspect,
+		},
 	}
 }
 
@@ -80,7 +86,7 @@ func startRepl(cfg *config) {
 			param = output[1]
 		}
 
-		fmt.Println("PARAMETER: ", param)
+		// fmt.Println("PARAMETER: ", param)
 
 		com, ok := supportedCommands[command]
 		if ok {
