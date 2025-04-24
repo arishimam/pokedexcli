@@ -49,6 +49,11 @@ func init() {
 			description: "Accepts a location argument and displays all pokemon in an area.",
 			callback:    commandExplore,
 		},
+		"catch": {
+			name:        "catch",
+			description: "Gives the user a chance to catch a Pokemon",
+			callback:    commandCatch,
+		},
 	}
 }
 
